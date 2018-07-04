@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="/node_modules/vue/dist/vue.js"></script>
+  <script src="/node_modules/vue-resource/dist/vue-resource.js"></script>
+  <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.css">
+  <!-- 需要用到Jquery吗？？？ -->
+</head>
+
+<body>
+  <div id="app">
+    <input type="button" value="发送get请求" @click="getList">
+
+
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">添加品牌</h3>
+      </div>
+      <div class="panel-body form-inline">
+
+
+        <label>
+          Name:
+          <input type="text" class="form-control" v-model="name" @keyup.enter="add()">
+        </label>
+
+        <!-- 在Vue中，使用事件绑定机制，为元素指定处理函数的时候，如果加了小括号，就可以给函数传参了 -->
+        <input type="button" value="添加" class="btn btn-primary" @click="add()" >
+
+        <label>
+          搜索名称关键字：
+          <input type="text" class="form-control" v-model="keywords" v-focus>
+        </label>
+      </div>
+    </div>
+
+
+
+    <table class="table table-bordered table-hover table-striped">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Ctime</th>
+          <th>Operation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 之前， v-for 中的数据，都是直接从 data 上的list中直接渲染过来的 -->
+        <!-- 现在， 我们自定义了一个 search 方法，同时，把 所有的关键字，通过传参的形式，传递给了 search 方法 -->
+        <!-- 在 search 方法内部，通过 执行 for 循环， 把所有符合 搜索关键字的数据，保存到 一个新数组中，返回 -->
+        <tr v-for="item in search(keywords)" :key="item.id">
+          <td>{{ item.id }}</td>
+          <td v-text="item.name"></td>
+          <td>{{ item.ctime | dateFormat}}</td>
+          <td>
+            <a href="" @click.prevent="del(item.id)">删除</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+
+
+  </div>
+
+  <script>
+    //后台根路径
+    Vue.http.options.root = 'http://localhost:3000';
+    Vue.http.options.emulateJSON = true;
+    // 创建 Vue 实例，得到 ViewModel
+    Vue.filter('dateFormat',(dateStr) => {
+        let dt = new Date(dateStr);
+        let y = dt.getFullYear();
+        let m = (dt.getMonth() + 1).toString().padStart(2,'0');
+        let d = (dt.getDate()).toString().padStart(2,'0');
+        return `${y}-${m}-${d}`;
+    });
+    Vue.directive('focus',{
+      inserted:(el) => {
+          el.focus();
+      }
+    })
+
+    var vm = new Vue({
+      el: '#app',
+      data: {
+        id: '',
+        name: '',
+        keywords: '', // 搜索的关键字
+        list: []
+      },
+      created() { // 当 vm 实例 的 data 和 methods 初始化完毕后，vm实例会自动执行created 这个生命周期函数
+          this.getList()
+      },
+      methods: {
+          getList() {
+              this.$http.get('queryCar').then(function(result) {
+                this.list = result.body;
+            });
+          },
+        add() {
+            this.$http.post('addCar', {name:this.name}).then(result => {
+                if(result.body.affectedRows === 1) {
+                    this.getList();
+                    this.name = '';
+                } else {
+                    alert('新增失败!');
+                }
+            })
+
+        },
+        del(id) { // 根据Id删除数据
+            this.$http.get(`delCar?id=${id}`).then(result => {
+                console.log(result.body);
+                if(result.body.affectedRows === 1) {
+                    this.getList();
+                } else {
+                    alert('删除失败!');
+                }
+            })
+        },
+        search(keywords) { // 根据关键字，进行数据的搜索
+          /* var newList = []
+          this.list.forEach(item => {
+            if (item.name.indexOf(keywords) != -1) {
+              newList.push(item)
+            }
+          })
+          return newList */
+
+          // 注意：  forEach   some   filter   findIndex   这些都属于数组的新方法，
+          //  都会对数组中的每一项，进行遍历，执行相关的操作；
+          return this.list.filter(item => {
+            // if(item.name.indexOf(keywords) != -1)
+
+            // 注意 ： ES6中，为字符串提供了一个新方法，叫做  String.prototype.includes('要包含的字符串')
+            //  如果包含，则返回 true ，否则返回 false
+            //  contain
+            if (item.name.includes(keywords)) {
+              return item
+            }
+          })
+
+          // return newList
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
