@@ -330,6 +330,28 @@ app.get('/getgoods',function(req,res) {
     });
     connection.end();
 });
+app.get('/getgoodsbyid/:id',function(req,res) {
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var id = req.params.id;
+    connection.query(`SELECT * from goods where id = '${id}'`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+
+        res.send(results);
+    });
+    connection.end();
+});
 
 // 指定端口号并启动服务器监听
 app.listen(3000,function () {
