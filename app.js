@@ -172,11 +172,166 @@ app.get('/getcomments/:id/:pageIndex',function(req,res) {
     });
     connection.end();
 });
+app.post('/addcomment',function(req,res) {
+    //console.log(req.params.id + req.params.pageIndex);
+    //为啥这里又不需要跨域了?
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var user_name = req.body.user_name;
+    //var add_time = Date.now();
+    //console.log(add_time);
+    var content = req.body.content;
+    var news_id = req.body.news_id;
+    connection.query(`insert into comments values('${user_name}',now(),'${content}','${news_id}')`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
 
+        res.send(results);
+    });
+    connection.end();
+});
 
+app.get('/getimgcategory',function(req,res) {
+    //console.log(req.params.id + req.params.pageIndex);
+    //为啥这里又不需要跨域了?
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
 
+    connection.query(`SELECT * from imgcategory`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+
+        res.send(results);
+    });
+    connection.end();
+});
+app.get('/getimages/:id',function(req,res) {
+    //console.log(req.params.id + req.params.pageIndex);
+    //为啥这里又不需要跨域了?
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var id = req.params.id;
+    if(id == 0) {
+        connection.query(`SELECT * from imglist`, function (error, results, fields) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+
+            res.send(results);
+        });
+    }else {
+        connection.query(`SELECT * from imglist where category_id = '${id}'`, function (error, results, fields) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+
+            res.send(results);
+        });
+    }
+
+    connection.end();
+});
+app.get('/getimageInfo/:id',function(req,res) {
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var id = req.params.id;
+
+    connection.query(`SELECT * from imglist where id = '${id}'`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+        res.send(results);
+    });
+    connection.end();
+});
+
+app.get('/getthumimages/:id',function(req,res) {
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var id = req.params.id;
+
+    connection.query(`SELECT * from imghum where img_id = '${id}'`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+        res.send(results);
+    });
+    connection.end();
+});
+app.get('/getgoods',function(req,res) {
+    res.header("Access-Control-Allow-Origin","*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With,Origin,Content-Type,Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    var connection = mysql.createConnection({
+        host     : 'localhost',
+        user     : 'root',
+        password : '123',
+        database : 'car'
+    });
+    connection.connect();
+    var pageSize = 3;
+    var pageIndex = req.query.pageIndex;
+    var index = parseInt(pageSize * (pageIndex - 1));
+    connection.query(`SELECT * from goods limit ${index},${pageSize}`, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+
+        res.send(results);
+    });
+    connection.end();
+});
 
 // 指定端口号并启动服务器监听
-app.listen(3000, function () {
-  console.log('server running at http://127.0.0.1:3000')
+app.listen(3000,function () {
+  console.log('server running at http://localhost:3000')
 })
